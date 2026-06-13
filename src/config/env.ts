@@ -18,7 +18,8 @@ const envSchema = z.object({
     })
     .int({ error: 'PORT must be an integer' })
     .min(1, { error: 'PORT must be at least 1' })
-    .max(65535, { error: 'PORT must be at most 65535' }),
+    .max(65535, { error: 'PORT must be at most 65535' })
+    .default(5000),
   MONGODB_URI: z
     .string({
       error: iss =>
@@ -27,6 +28,12 @@ const envSchema = z.object({
           : 'MongoDB uri must be a string',
     })
     .min(1, { error: 'MongoDB uri cannot be empty' }),
+  CLIENT_URL: z.url({
+    error: iss =>
+      iss.input === undefined
+        ? 'Client url is required'
+        : 'Client url must be a valid URL',
+  }),
 });
 
 const result = envSchema.safeParse(process.env);

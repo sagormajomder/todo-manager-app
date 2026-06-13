@@ -20,8 +20,11 @@
   },
   "type": "module",
   "dependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "helmet": "^8.2.0",
     "mongoose": "^9.7.0",
     "zod": "^4.4.3"
   },
