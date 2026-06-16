@@ -1,11 +1,6 @@
+import type { IUser } from '@/types/types.js';
 import { VALIDATIONS } from '@/utils/constants.js';
 import mongoose, { Document, Model } from 'mongoose';
-
-interface IUser extends Document {
-  name: string;
-  email: string;
-  password: string;
-}
 
 const userSchema = new mongoose.Schema<IUser>(
   {
@@ -41,6 +36,13 @@ const userSchema = new mongoose.Schema<IUser>(
   {
     timestamps: true,
     versionKey: false,
+    toJSON: {
+      transform(_doc: Document, ret: Record<string, any>) {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.password;
+      },
+    },
   },
 );
 

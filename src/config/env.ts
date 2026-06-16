@@ -34,6 +34,22 @@ const envSchema = z.object({
         ? 'Client url is required'
         : 'Client url must be a valid URL',
   }),
+  JWT_ACCESS_TOKEN: z
+    .string({
+      error: iss =>
+        iss.input === undefined
+          ? 'JWT_ACCESS_TOKEN is required'
+          : 'JWT_ACCESS_TOKEN must be a string',
+    })
+    .min(10, { error: 'JWT_ACCESS_TOKEN must be at least 10 character' }),
+  JWT_REFRESH_TOKEN: z
+    .string({
+      error: iss =>
+        iss.input === undefined
+          ? 'JWT_REFRESH_TOKEN is required'
+          : 'JWT_REFRESH_TOKEN must be a string',
+    })
+    .min(10, { error: 'JWT_REFRESH_TOKEN must be at least 10 character' }),
 });
 
 const result = envSchema.safeParse(process.env);

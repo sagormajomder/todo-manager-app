@@ -43,9 +43,9 @@ export const registerSchema = z.object({
       })
       .regex(/\d/, {
         error: 'Password should have at least one digit',
-      })
-      .regex(/[^a-zA-Z0-9]/, {
-        error: 'Password should have at least one special characters',
       }),
+    // .regex(/[^a-zA-Z0-9]/, {
+    //   error: 'Password should have at least one special characters',
+    // }),
   }),
 });
