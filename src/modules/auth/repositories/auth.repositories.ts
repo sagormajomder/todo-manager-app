@@ -5,7 +5,7 @@ function authRepositories() {
   return {
     create: async ({ name, email, password }: IUser) =>
       await User.create({ name, email, password }),
-    findByEmail: async () => {},
+    findById: async (id: string) => await User.findById(id),
   };
 }
 

@@ -1,6 +1,19 @@
 import { VALIDATIONS } from '@/utils/constants.js';
 import z from 'zod';
 
+const emailField = z
+  .string({
+    error: iss =>
+      iss.input === undefined
+        ? 'Email is required'
+        : 'Email type should be string',
+  })
+  .trim()
+  .toLowerCase()
+  .regex(VALIDATIONS.EMAIL_REGEX_PATTERN, {
+    error: 'Please provide a valid Email',
+  });
+
 export const registerSchema = z.object({
   body: z.object({
     name: z
@@ -13,18 +26,7 @@ export const registerSchema = z.object({
       .trim()
       .min(3, { error: 'Name should have at least 3 characters' })
       .max(50, { error: "Name shouldn't exceed 50 characters" }),
-    email: z
-      .string({
-        error: iss =>
-          iss.input === undefined
-            ? 'Email is required'
-            : 'Email type should be string',
-      })
-      .trim()
-      .toLowerCase()
-      .regex(VALIDATIONS.EMAIL_REGEX_PATTERN, {
-        error: 'Please provide a valid Email',
-      }),
+    email: emailField,
     password: z
       .string({
         error: iss =>
@@ -47,5 +49,21 @@ export const registerSchema = z.object({
     // .regex(/[^a-zA-Z0-9]/, {
     //   error: 'Password should have at least one special characters',
     // }),
+  }),
+});
+
+export const loginSchema = z.object({
+  body: z.object({
+    email: emailField,
+    password: z
+      .string({
+        error: iss =>
+          iss.input === undefined
+            ? 'Password is required'
+            : 'Password type should be string',
+      })
+      .min(VALIDATIONS.PASSWORD_MIN_LENGTH, {
+        error: `Password Must be at least ${VALIDATIONS.PASSWORD_MIN_LENGTH} characters long`,
+      }),
   }),
 });
