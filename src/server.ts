@@ -7,6 +7,7 @@ import type { Server } from 'node:http';
 
 const port = env.PORT;
 let server: Server;
+let hasError = false;
 
 async function gracefulShutdown(signal: string): Promise<void> {
   console.log(`\n${signal} received. Shutting down gracefully...`);
@@ -18,31 +19,38 @@ async function gracefulShutdown(signal: string): Promise<void> {
   }, SHUTDOWN_TIMEOUT);
   forceExitTimer.unref();
 
+  // Stop accepting new connections and drain in-flight requests
   try {
-    // Stop accepting new connections and drain in-flight requests
-    await new Promise<void>((resolve, reject) => {
-      server.close(err => {
-        if (err) reject(err);
-        else resolve();
+    if (server) {
+      await new Promise<void>((resolve, reject) => {
+        server.close(err => (err ? reject(err) : resolve()));
       });
-    });
-
-    // Close database connection
-    await mongoose.connection.close();
-    console.log('Server shut down gracefully.');
-    process.exit(0);
-  } catch (error) {
-    console.error('Error during shutdown:', error);
-    process.exit(1);
+      console.log('Server is successfully close');
+    }
+  } catch (err) {
+    console.error('   ✗ Error closing HTTP server:', err);
+    hasError = true;
   }
+
+  // Close database connection
+  try {
+    await mongoose.connection.close();
+    console.log('Database connection successfully close');
+  } catch (error) {
+    console.error('Error during Database closing:', error);
+    hasError = true;
+  }
+
+  console.log('Shutdown complete');
+  process.exit(hasError ? 1 : 0);
 }
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error(`Unhandled Rejection at ${promise}, reason:`, reason);
-  gracefulShutdown('unhandledRejection');
+process.on('unhandledRejection', (reason: unknown) => {
+  console.error(`Unhandled Rejection reason:`, reason);
+  gracefulShutdown('UNHANDLED_REJECTION');
 });
 
 process.on('uncaughtException', (err: Error) => {
@@ -71,13 +79,11 @@ const startServer = async (): Promise<void> => {
     });
 
     server.on('error', handleServerError);
+
+    server.keepAliveTimeout = 65_000;
+    server.headersTimeout = 66_000;
   } catch (error) {
-    console.error('Unexpected server startup error');
-    if (error instanceof Error) {
-      console.error(error.message);
-    } else {
-      console.error(error);
-    }
+    console.error('Unexpected server startup error', error);
     process.exit(1);
   }
 };
