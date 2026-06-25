@@ -1,22 +1,28 @@
+import env from '@/config/env.js';
 import mongoose from 'mongoose';
-import env from './env.js';
 
-const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
-  try {
-    const conn = await mongoose.connect(env.MONGODB_URI);
-    console.log(`Database is connected at ${conn.connection.host}`);
-  } catch (error) {
-    console.log('Database is not connected');
+mongoose.set('bufferCommands', env.NODE_ENV !== 'production');
 
-    if (error instanceof Error) {
-      console.error(error.message);
-    } else {
-      console.error(error);
-    }
+mongoose.connection.on('connected', () => {
+  console.log('📗 MongoDB connected');
+});
 
-    process.exit(1);
-  }
+mongoose.connection.on('disconnected', () => {
+  console.warn('📕 MongoDB disconnected');
+});
+
+mongoose.connection.on('error', (err: Error) => {
+  console.error('📛 MongoDB connection error:', err.message);
+});
+
+const connectDB = async (): Promise<void> => {
+  if (mongoose.connection.readyState === 1) return;
+
+  const conn = await mongoose.connect(env.MONGODB_URI, {
+    autoIndex: env.NODE_ENV !== 'production',
+    serverSelectionTimeoutMS: 5000,
+  });
+  console.log(`Database is connected at ${conn.connection.host}`);
 };
 
 export default connectDB;
